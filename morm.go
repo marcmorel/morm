@@ -8,17 +8,12 @@ import (
 	"strings"
 	"time"
 
-	"github.com/jinzhu/gorm"
-	_ "github.com/jinzhu/gorm/dialects/mysql" //used for gorm
 	"github.com/jmoiron/sqlx"
 	"github.com/jmoiron/sqlx/reflectx"
-	"gitlab.com/hiveway/fleet-live-api/cmd/mylog"
 )
 
-//fleet-live-api uses Gorm for migration and setup but not live in production
 //we use sqlx to manage connection in production. So both connection should never be "not null" at the same time
 
-var dbgorm *gorm.DB = nil //handler to gorm database pool. Equals nil when not initialized yet
 var dbx *sqlx.DB = nil    //handler to SQLx database connection
 var connectionString = "" //will store the DB connection string in case we need it to retry a connection
 
@@ -32,7 +27,7 @@ var modelSQLFields map[string]string = nil
 var modelFields map[string](*map[string]*fieldStruct)
 
 //DB return pointer to current DB
-func DB() *dbx {
+func DB() *sqlx.DB {
 	return dbx
 }
 
@@ -161,7 +156,6 @@ func SafeString(i interface{}) string {
 	}
 	var str sql.NullString
 	if str.Scan(i) != nil {
-		mylog.LogTrace("Error in string conversion")
 		return ""
 	}
 	return str.String
@@ -205,14 +199,11 @@ func CheckDB() (*sqlx.DB, error) {
 	}
 	err := dbx.Ping()
 	if err != nil {
-		mylog.Log(mylog.LevelError, "Error on DB ping, retrying connection")
 		_, err2 := connectDB()
 		if err2 != nil {
-			mylog.Log(mylog.LevelError, "Error on retry.")
 			return nil, err2
 		}
 		//still here ? second DB connection was successful
-		mylog.Log(mylog.LevelWarning, "2nd connection was ok")
 
 	}
 	return dbx, nil
@@ -234,46 +225,6 @@ func connectDB() (*sqlx.DB, error) {
 	dbx.Mapper = reflectx.NewMapperFunc("sqlx", strings.ToLower)
 
 	return dbx, err
-}
-
-//CheckGormDB will establish a connection if none exists and ping it if not. Will try once
-//reestablish a connection
-func CheckGormDB() (*gorm.DB, error) {
-	if dbgorm == nil {
-		return nil, errors.New("DB not initialized")
-	}
-	err := dbgorm.DB().Ping()
-	if err != nil {
-		mylog.Log(mylog.LevelError, "Error on DB ping, retrying connection")
-		_, err2 := connectGormDB()
-		if err2 != nil {
-			mylog.Log(mylog.LevelError, "Error on retry.")
-			return nil, err2
-		}
-		//still here ? second DB connection was successful
-
-	}
-	return dbgorm, nil
-}
-
-// InitGormDB initiates the connection to the DB through the Gorm middleware and returns an error; no panic
-// driver is supposed to be mysql and won't be modified
-func InitGormDB(datasource string) (*gorm.DB, error) {
-
-	connectionString = strings.Trim(datasource, " ") + "?charset=utf8&parseTime=True&loc=Local"
-	db, err := connectGormDB()
-	if err != nil {
-		time.Sleep(time.Duration(3 * 1000000000))
-		return connectGormDB()
-	}
-	return db, err
-}
-
-//connectGormDB will initiate the connection to the DB through the Gorm middleware
-func connectGormDB() (*gorm.DB, error) {
-	var err error
-	dbgorm, err = gorm.Open("mysql", connectionString)
-	return dbgorm, err
 }
 
 // GetDB will return a pointer to the SLQX conneciton pool or an error if it hasn't been initialized yet
@@ -490,7 +441,6 @@ func Save(m Model, transaction *sqlx.Tx) error {
 	}
 	result, err := dbx.Exec(query)
 	if err != nil {
-		mylog.LogError("Unable to execute query : " + query + " --- " + err.Error())
 		return err
 	}
 
@@ -625,7 +575,6 @@ func modelDelete(tablename string, ID uint64) error {
 	query := `delete from ` + tablename + ` where id=` + strconv.FormatUint(ID, 10) + `;`
 	_, err := dbx.Exec(query)
 	if err != nil {
-		mylog.LogError("Unable to execute query : " + query + " --- " + err.Error())
 		return err
 	}
 	return nil
