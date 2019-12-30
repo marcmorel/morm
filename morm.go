@@ -571,7 +571,8 @@ func FindAllByColumn(tablename string, m map[string](string)) ([]map[string](int
 	return result, nil
 }
 
-func modelDelete(tablename string, ID uint64) error {
+//ModelDelete delete the model in db
+func ModelDelete(tablename string, ID uint64) error {
 	query := `delete from ` + tablename + ` where id=` + strconv.FormatUint(ID, 10) + `;`
 	_, err := dbx.Exec(query)
 	if err != nil {
