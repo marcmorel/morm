@@ -1,0 +1,28 @@
+# Binaries for programs and plugins
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+bin/
+
+# Test binary, build with `go test -c`
+*.test
+
+# Output of the go coverage tool, specifically when used with LiteIDE
+*.out
+
+#never ever add this file to the repo: it contains env variable.
+#instead use docker-compose-template.yml which references env variables
+docker-compose.yml 
+
+#IDE shit
+*.code-workspace
+
+#finder garbage
+.DS_Store
+
+#prof test
+*.prof
+
+go.sum
