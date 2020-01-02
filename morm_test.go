@@ -1,4 +1,4 @@
-package models
+package morm
 
 import (
 	"strings"
