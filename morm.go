@@ -3,6 +3,7 @@ package morm
 import (
 	"database/sql"
 	"errors"
+	"fmt"
 	"reflect"
 	"strconv"
 	"strings"
@@ -481,6 +482,25 @@ func prepareUpdateQuery(m Model) (string, error) {
 /*Update will set the updated_at field at now() and save to DB. will return an error if model.id = 0 */
 func Update(m Model, transaction *sqlx.Tx) error {
 	query, err := prepareUpdateQuery(m)
+	if err != nil {
+		return err
+	}
+	if transaction != nil {
+		if _, err := transaction.Exec(query); err != nil {
+			return err
+		}
+		return nil
+	}
+	if _, err := dbx.Exec(query); err != nil {
+		return err
+	}
+	return nil
+}
+
+/*UpdateDebug will set the updated_at field at now() and save to DB. will return an error if model.id = 0. Will print the request */
+func UpdateDebug(m Model, transaction *sqlx.Tx) error {
+	query, err := prepareUpdateQuery(m)
+	fmt.Printf("Update Debug, request executed :%s\n", query)
 	if err != nil {
 		return err
 	}

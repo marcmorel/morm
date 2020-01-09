@@ -32,11 +32,11 @@ func (t *teststruct2) TableName() string {
 }
 
 func (t *teststruct1) Save() error {
-	return morm.Save(t, nil)
+	return Save(t, nil)
 }
 
 func (t *teststruct1) Update() error {
-	return morm.Update(t, nil)
+	return Update(t, nil)
 }
 
 func (t *teststruct1) SetID(id uint64) {
@@ -57,7 +57,7 @@ func TestPrepareModelForScan(t *testing.T) {
 		t.FailNow()
 	}
 	prepareModelForScan(&teststruct2{})
-	result := morm.GetSQLFields("teststruct1", "teststruct2")
+	result := GetSQLFields("teststruct1", "teststruct2")
 	temp := result
 	//hard to get a forecast on result because morm.GetSQLFields produces an output based on a map so in a random order
 
