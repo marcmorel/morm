@@ -211,7 +211,6 @@ func CheckDB() (*sqlx.DB, error) {
 }
 
 // InitDB initiates the connection to the DB through the SQLX middleware and returns an error; no panic
-// InitDB initiates the connection to the DB through the SQLX middleware and returns an error; no panic
 // driver is supposed to be mysql and won't be modified
 func InitDB(datasource string) (*sqlx.DB, error) {
 
@@ -223,6 +222,9 @@ func InitDB(datasource string) (*sqlx.DB, error) {
 func connectDB() (*sqlx.DB, error) {
 	var err error
 	dbx, err = sqlx.Open("mysql", connectionString)
+	if err != nil {
+		return err, nil
+	}
 	dbx.Mapper = reflectx.NewMapperFunc("sqlx", strings.ToLower)
 
 	return dbx, err
