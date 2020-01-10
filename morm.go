@@ -9,6 +9,7 @@ import (
 	"strings"
 	"time"
 
+	_ "github.com/go-sql-driver/mysql" //mysqldriver
 	"github.com/jmoiron/sqlx"
 	"github.com/jmoiron/sqlx/reflectx"
 )
