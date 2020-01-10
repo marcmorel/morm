@@ -223,7 +223,7 @@ func connectDB() (*sqlx.DB, error) {
 	var err error
 	dbx, err = sqlx.Open("mysql", connectionString)
 	if err != nil {
-		return err, nil
+		return nil, err
 	}
 	dbx.Mapper = reflectx.NewMapperFunc("sqlx", strings.ToLower)
 
