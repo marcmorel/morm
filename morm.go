@@ -568,11 +568,22 @@ FindAllByColmun will return a  []map[string](interface{}) to be fed x times to y
 func FindAllByColumn(tablename string, m map[string](string)) ([]map[string](interface{}), error) {
 	query := `select ` + GetSQLFields(tablename) + ` from ` + tablename + ` where `
 
+	limitValue := ""
 	for k, v := range m {
-		query += tablename + "." + k + "=" + v
-		query += " AND "
+		if strings.HasPrefix(k, "morm_") {
+			switch k {
+			case "morm_limit":
+				limitValue = v
+			}
+		} else {
+			query += tablename + "." + k + "=" + v
+			query += " AND "
+		}
 	}
-	query += tablename + ".deleted_at is null"
+	query += tablename + ".deleted_at is null "
+	if limitValue != "" {
+		query += " limit " + limitValue
+	}
 	result := make([]map[string]interface{}, 0, 100)
 	rows, err := dbx.Queryx(query)
 	if err == sql.ErrNoRows {
