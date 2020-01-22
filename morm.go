@@ -569,11 +569,14 @@ func FindAllByColumn(tablename string, m map[string](string)) ([]map[string](int
 	query := `select ` + GetSQLFields(tablename) + ` from ` + tablename + ` where `
 
 	limitValue := ""
+	orderBy := ""
 	for k, v := range m {
 		if strings.HasPrefix(k, "morm_") {
 			switch k {
 			case "morm_limit":
 				limitValue = v
+			case "morm_orderby":
+				orderBy = v
 			}
 		} else {
 			query += tablename + "." + k + "=" + v
@@ -581,8 +584,11 @@ func FindAllByColumn(tablename string, m map[string](string)) ([]map[string](int
 		}
 	}
 	query += tablename + ".deleted_at is null "
+	if orderBy != "" {
+		query += " order by " + orderBy + " "
+	}
 	if limitValue != "" {
-		query += " limit " + limitValue
+		query += " limit " + limitValue + " "
 	}
 	result := make([]map[string]interface{}, 0, 100)
 	rows, err := dbx.Queryx(query)
