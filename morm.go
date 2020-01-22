@@ -570,6 +570,7 @@ func FindAllByColumn(tablename string, m map[string](string)) ([]map[string](int
 
 	limitValue := ""
 	orderBy := ""
+	verbose := false
 	for k, v := range m {
 		if strings.HasPrefix(k, "morm_") {
 			switch k {
@@ -577,6 +578,8 @@ func FindAllByColumn(tablename string, m map[string](string)) ([]map[string](int
 				limitValue = v
 			case "morm_orderby":
 				orderBy = v
+			case "morm_verbose":
+				verbose = true
 			}
 		} else {
 			query += tablename + "." + k + "=" + v
@@ -589,6 +592,9 @@ func FindAllByColumn(tablename string, m map[string](string)) ([]map[string](int
 	}
 	if limitValue != "" {
 		query += " limit " + limitValue + " "
+	}
+	if verbose {
+		fmt.Printf("Query for FindAllByColumn : " + query + "\n")
 	}
 	result := make([]map[string]interface{}, 0, 100)
 	rows, err := dbx.Queryx(query)
