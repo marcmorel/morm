@@ -580,6 +580,10 @@ func FindAllByColumn(tablename string, m map[string](string)) ([]map[string](int
 				orderBy = v
 			case "morm_verbose":
 				verbose = true
+			case "morm_isnull":
+				query += tablename + "." + k + " is null AND "
+			case "morm_isnotnull":
+				query += tablename + "." + k + " is not null AND "
 			}
 		} else {
 			query += tablename + "." + k + "=" + v
