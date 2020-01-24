@@ -581,9 +581,9 @@ func FindAllByColumn(tablename string, m map[string](string)) ([]map[string](int
 			case "morm_verbose":
 				verbose = true
 			case "morm_isnull":
-				query += tablename + "." + k + " is null AND "
+				query += tablename + "." + v + " is null AND "
 			case "morm_isnotnull":
-				query += tablename + "." + k + " is not null AND "
+				query += tablename + "." + v + " is not null AND "
 			}
 		} else {
 			query += tablename + "." + k + "=" + v
