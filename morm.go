@@ -471,7 +471,7 @@ func prepareUpdateQuery(m Model) (string, error) {
 		if key == "id" {
 			sqlid = val
 		} else {
-			sqlvals += key + "=" + val
+			sqlvals += "`" + key + "`=" + val
 			oldSqlvals = sqlvals
 			sqlvals += ", "
 		}
