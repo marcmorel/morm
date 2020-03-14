@@ -18,6 +18,7 @@ import (
 
 var dbx *sqlx.DB = nil    //handler to SQLx database connection
 var connectionString = "" //will store the DB connection string in case we need it to retry a connection
+var verboseMode = false
 
 type fieldStruct struct {
 	SQLName string
@@ -31,6 +32,11 @@ var modelFields map[string](*map[string]*fieldStruct)
 //DB return pointer to current DB
 func DB() *sqlx.DB {
 	return dbx
+}
+
+//SetVerbose sets or unsets the verbose mode. If set, morm will print all queries on standard output
+func SetVerbose(b bool) {
+	verboseMode = b
 }
 
 //SQLTime prepares a time statement for an sql query
@@ -432,6 +438,9 @@ func Save(m Model, transaction *sqlx.Tx) error {
 	setTimeField(m, "UpdatedAt", &now)
 	fields, values := GetSQLFieldsAndValues(m)
 	query := `insert into ` + m.TableName() + ` ( ` + fields + `) VALUES (` + values + `)`
+	if verboseMode {
+		fmt.Printf("Query : %s\n", query)
+	}
 	if transaction != nil {
 		result, err := transaction.Exec(query)
 		if err != nil {
@@ -485,6 +494,10 @@ func prepareUpdateQuery(m Model) (string, error) {
 /*Update will set the updated_at field at now() and save to DB. will return an error if model.id = 0 */
 func Update(m Model, transaction *sqlx.Tx) error {
 	query, err := prepareUpdateQuery(m)
+	if verboseMode {
+		fmt.Printf("Query : %s\n", query)
+
+	}
 	if err != nil {
 		return err
 	}
@@ -548,7 +561,9 @@ func FindByColumn(tablename string, m map[string](string)) (map[string](interfac
 		query += " AND "
 	}
 	query += tablename + ".deleted_at is null limit 1"
-
+	if verboseMode {
+		fmt.Printf("Query : %s\n", query)
+	}
 	r := make(map[string]interface{})
 	if err := dbx.QueryRowx(query).MapScan(r); err != nil {
 		if err == sql.ErrNoRows {
@@ -597,7 +612,7 @@ func FindAllByColumn(tablename string, m map[string](string)) ([]map[string](int
 	if limitValue != "" {
 		query += " limit " + limitValue + " "
 	}
-	if verbose {
+	if verbose || verboseMode {
 		fmt.Printf("Query for FindAllByColumn : " + query + "\n")
 	}
 	result := make([]map[string]interface{}, 0, 100)
@@ -606,6 +621,9 @@ func FindAllByColumn(tablename string, m map[string](string)) ([]map[string](int
 		return nil, nil
 	}
 	if err != nil {
+		if verboseMode {
+			fmt.Printf("Error : %s\n", err.Error())
+		}
 		return nil, err
 	}
 	for rows.Next() {
@@ -624,8 +642,14 @@ func FindAllByColumn(tablename string, m map[string](string)) ([]map[string](int
 //ModelDelete delete the model in db
 func ModelDelete(tablename string, ID uint64) error {
 	query := `delete from ` + tablename + ` where id=` + strconv.FormatUint(ID, 10) + `;`
+	if verboseMode {
+		fmt.Printf("Query : %s\n", query)
+	}
 	_, err := dbx.Exec(query)
 	if err != nil {
+		if verboseMode {
+			fmt.Printf("Error : %s\n", err.Error())
+		}
 		return err
 	}
 	return nil
