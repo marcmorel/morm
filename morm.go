@@ -221,7 +221,7 @@ func CheckDB() (*sqlx.DB, error) {
 // driver is supposed to be mysql and won't be modified
 func InitDB(datasource string) (*sqlx.DB, error) {
 
-	connectionString = strings.Trim(datasource, " ") + "?charset=utf8&parseTime=True&loc=Local"
+	connectionString = strings.Trim(datasource, " ") + "?parseTime=True&loc=Local"
 	return connectDB()
 }
 
